@@ -1,0 +1,47 @@
+#reset KDE to stock settings
+rm -rf ~/.config/plasma* ~/.config/kde* ~/.local/share/plasma* ~/.cache/plasma
+
+#remove those directories
+sudo rm -rf /usr/lib/firmware/nvidia/ad103
+sudo rm -rf /usr/lib/firmware/nvidia/ad104
+sudo rm -rf /usr/lib/firmware/nvidia/ad106
+sudo rm -rf /usr/lib/firmware/nvidia/ad107
+
+#update system
+sudo pacman -Syu
+
+#install yay
+sudo pacman -S --needed --noconfirm git base-devel && git clone https://aur.archlinux.org/yay.git /tmp/yay && cd /tmp/yay && makepkg -si --noconfirm && cd - && rm -rf /tmp/yay
+
+#install flatpak
+yay -S flatpak
+
+#install dinit-user-spawn
+sudo pacman -S dinit-user-spawn
+
+#install power profile daemon
+sudo pacman -Syu tlp power-profiles-daemon powerdevil power-profiles-daemon-dinit
+
+#enable power profile daemon
+sudo dinitctl enable power-profiles-daemon
+
+#remove wacomtablet
+sudo pacman -R wacomtablet
+
+#install xlibre
+sudo pacman -S xlibre
+
+#remove old pulse audio packages
+sudo pacman -R pulseaudio-bluetooth pulseaudio-zeroconf
+
+#install pipewire and wireplumber
+sudo pacman -S pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber pipewire-dinit wireplumber-dinit pipewire-pulse pipewire-pulse-dinit
+
+#enable sound services
+dinitctl enable dbus && pipewire && dinitctl enable wireplumber && dinitctl enable pipewire-pulse
+
+#install brave
+yay -S brave-bin wget
+
+#run "Brave Debullshitinator"
+bash <(curl -s https://raw.githubusercontent.com/MulesGaming/brave-debloatinator/main/brave-bullshitinator-linux-install.sh)
