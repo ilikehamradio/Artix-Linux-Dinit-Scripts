@@ -38,7 +38,7 @@ sudo pacman -R pulseaudio-bluetooth pulseaudio-zeroconf
 sudo pacman -S pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber pipewire-dinit wireplumber-dinit pipewire-pulse pipewire-pulse-dinit
 
 #enable sound services
-dinitctl enable dbus && pipewire && dinitctl enable wireplumber && dinitctl enable pipewire-pulse
+dinitctl enable dbus && dinitctl enable pipewire && dinitctl enable wireplumber && dinitctl enable pipewire-pulse
 
 #install brave
 yay -S brave-bin wget
