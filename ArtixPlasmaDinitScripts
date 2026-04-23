@@ -31,6 +31,14 @@ sudo pacman -R wacomtablet
 #install xlibre
 sudo pacman -S xlibre
 
+#fix NTP
+sudo dinitctl stop ntpd
+sudo date -s "$(curl -sI https://google.com | grep -i '^date:' | cut -d' ' -f3-6)Z"
+sudo hwclock --systohc
+sudo dinitctl start ntpd
+sleep 30
+sudo ntpctl -s all
+
 #remove old pulse audio packages
 sudo pacman -R pulseaudio-bluetooth pulseaudio-zeroconf
 
