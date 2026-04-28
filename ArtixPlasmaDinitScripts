@@ -53,3 +53,9 @@ yay -S brave-bin wget
 
 #run "Brave Debullshitinator"
 bash <(curl -s https://raw.githubusercontent.com/MulesGaming/brave-debloatinator/main/brave-bullshitinator-linux-install.sh)
+
+#shit for virtualization
+sudo usermod -aG kvm,libvirt,wheel,storage $USER
+sudo pacman -S spice-gtk spice-vdagent
+
+
