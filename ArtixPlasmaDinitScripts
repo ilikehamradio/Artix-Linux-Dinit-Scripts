@@ -58,4 +58,7 @@ bash <(curl -s https://raw.githubusercontent.com/MulesGaming/brave-debloatinator
 sudo usermod -aG kvm,libvirt,wheel,storage $USER
 sudo pacman -S spice-gtk spice-vdagent
 
-
+#printer network address resolution
+sudo pacman -Sy --needed avahi-dinit nss-mdns
+sudo dinitctl start avahi-daemon
+grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hosts: \1mdns_minimal [NOTFOUND=return] dns/' /etc/nsswitch.conf
