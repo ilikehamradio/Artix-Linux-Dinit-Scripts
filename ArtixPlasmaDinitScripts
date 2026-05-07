@@ -62,3 +62,12 @@ sudo pacman -S spice-gtk spice-vdagent
 sudo pacman -Sy --needed avahi-dinit nss-mdns
 sudo dinitctl start avahi-daemon
 grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hosts: \1mdns_minimal [NOTFOUND=return] dns/' /etc/nsswitch.conf
+
+#Ollama
+yay -S ollama-cuda13-bin ollama-dinit --overwrite
+dinitctl enable ollama
+cd /tmp
+wget https://github.com/ollama/ollama/releases/download/v0.5.11/ollama-linux-amd64.tgz -O ollama.tgz
+tar -xzf ollama.tgz
+sudo mkdir -p /usr/lib/ollama/runners
+sudo cp -r lib/ollama/runners/* /usr/lib/ollama/runners/
