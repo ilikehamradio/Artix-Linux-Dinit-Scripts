@@ -1,12 +1,6 @@
 #reset KDE to stock settings
 rm -rf ~/.config/plasma* ~/.config/kde* ~/.local/share/plasma* ~/.cache/plasma
 
-#remove those directories
-sudo rm -rf /usr/lib/firmware/nvidia/ad103
-sudo rm -rf /usr/lib/firmware/nvidia/ad104
-sudo rm -rf /usr/lib/firmware/nvidia/ad106
-sudo rm -rf /usr/lib/firmware/nvidia/ad107
-
 #update system
 sudo pacman -Syu
 
@@ -27,26 +21,6 @@ sudo dinitctl enable power-profiles-daemon
 
 #remove wacomtablet
 sudo pacman -R wacomtablet
-
-#install xlibre
-sudo pacman -S xlibre
-
-#fix NTP
-sudo dinitctl stop ntpd
-sudo date -s "$(curl -sI https://google.com | grep -i '^date:' | cut -d' ' -f3-6)Z"
-sudo hwclock --systohc
-sudo dinitctl start ntpd
-sleep 30
-sudo ntpctl -s all
-
-#remove old pulse audio packages
-sudo pacman -R pulseaudio-bluetooth pulseaudio-zeroconf
-
-#install pipewire and wireplumber
-sudo pacman -S pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber pipewire-dinit wireplumber-dinit pipewire-pulse pipewire-pulse-dinit
-
-#enable sound services
-dinitctl enable dbus && dinitctl enable pipewire && dinitctl enable wireplumber && dinitctl enable pipewire-pulse
 
 #install brave
 yay -S brave-bin wget
