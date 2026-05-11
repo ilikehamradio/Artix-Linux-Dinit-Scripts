@@ -30,7 +30,7 @@ bash <(curl -s https://raw.githubusercontent.com/MulesGaming/brave-debloatinator
 
 #shit for virtualization
 sudo usermod -aG kvm,libvirt,wheel,storage $USER
-sudo pacman -S spice-gtk spice-vdagent
+sudo pacman -S spice-gtk spice-vdagent virt-manager
 
 #printer network address resolution
 sudo pacman -Sy --needed avahi-dinit nss-mdns
