@@ -41,15 +41,14 @@ grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hos
 yay -G appimagetool-bin && cd appimagetool-bin && sed -i 's/zsync/zsync2/g' PKGBUILD && makepkg -si
 
 #Ollama
-yay -S ollama-cuda13-bin ollama-dinit --overwrite
-cd /tmp
-wget https://github.com/ollama/ollama/releases/download/v0.5.11/ollama-linux-amd64.tgz -O ollama.tgz
-tar -xzf ollama.tgz
-sudo mkdir -p /usr/lib/ollama/runners
-sudo cp -r /tmp/lib/ollama/cuda_v* /usr/lib/ollama/runners/ 
-sudo cp /tmp/lib/ollama/libggml* /usr/lib/ollama/
-sudo ln -sf /usr/lib/libnvidia-ml.so* /usr/lib/ollama/
-sudo ln -sf /usr/lib/libcuda.so* /usr/lib/ollama/
-sudo cp -r /usr/lib/ollama/runners/* /usr/lib/ollama/
+curl -fsSL https://ollama.com/install.sh | sh
+
+sudo cat <<EOF | sudo tee /etc/dinit.d/user/ollama > /dev/null
+type            = process
+command         = /usr/local/bin/ollama serve
+restart         = false
+smooth-recovery = true
+log-type        = buffer
+EOF
 
 dinitctl enable ollama
