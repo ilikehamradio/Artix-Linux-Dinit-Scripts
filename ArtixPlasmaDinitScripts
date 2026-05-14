@@ -19,6 +19,10 @@ sudo pacman -Syu tlp power-profiles-daemon powerdevil power-profiles-daemon-dini
 #enable power profile daemon
 sudo dinitctl enable power-profiles-daemon
 
+#ufw
+yay -S ufw-dinit ufw
+sudo dinitctl enable ufw
+
 #remove wacomtablet
 sudo pacman -R wacomtablet
 
