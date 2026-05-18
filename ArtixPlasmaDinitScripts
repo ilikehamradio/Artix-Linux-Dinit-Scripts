@@ -44,6 +44,25 @@ grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hos
 #appimagetool - broken dependency fix. Needs zsync2, not zsync
 yay -G appimagetool-bin && cd appimagetool-bin && sed -i 's/zsync/zsync2/g' PKGBUILD && makepkg -si
 
+#protondrive support
+sudo pacman -S rclone && mkdir ~/ProtonDrive && rclone config
+
+sudo bash -c "cat > /etc/dinit.d/user/protondrive <<EOF
+# Service type for background process
+type: process
+
+# The command to run (use absolute path!)
+command: /usr/bin/rclone mount ProtonDrive: /home/$(id -un)/ProtonDrive --vfs-cache-mode full
+
+# PID file location (required for bgprocess)
+pid-file: /run/dinit/protondrive.pid
+
+# Restart policy
+restart: true
+EOF"
+
+dinitctl enable protondrive
+
 #Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
