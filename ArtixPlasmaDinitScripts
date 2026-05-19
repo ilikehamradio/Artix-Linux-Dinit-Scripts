@@ -26,6 +26,10 @@ sudo dinitctl enable ufw
 #remove wacomtablet
 sudo pacman -R wacomtablet
 
+#nomachine
+yay -S nomachine
+sed -i 's/^\(Enable hardware accelerated decoding *= *\).*/\1"disabled"/' "$HOME/.nx/config/player.cfg"   
+
 #openvpn support
 sudo pacman -S networkmanager-openvpn
 
