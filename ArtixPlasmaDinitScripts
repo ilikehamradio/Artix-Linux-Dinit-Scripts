@@ -26,6 +26,9 @@ sudo dinitctl enable ufw
 #remove wacomtablet
 sudo pacman -R wacomtablet
 
+#openvpn support
+sudo pacman -S networkmanager-openvpn
+
 #install brave
 yay -S brave-bin wget
 
