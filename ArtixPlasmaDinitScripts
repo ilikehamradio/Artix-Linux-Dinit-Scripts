@@ -66,6 +66,18 @@ EOF"
 
 dinitctl enable protondrive
 
+#stupid kioworker bug workaround
+if command -v kwriteconfig6 &> /dev/null; then
+    kwriteconfig6 --file kdeglobals --group PreviewSettings --key SkipRemovableDevices true
+    kwriteconfig6 --file kdeglobals --group PreviewSettings --key Tooltips false
+else
+    # Fallback to sed if the KDE tool isn't in your path
+    sed -i '/\[PreviewSettings\]/,/^\[/ { /SkipRemovableDevices=/d; /Tooltips=/d; }' ~/.config/kdeglobals
+    if ! grep -q "\[PreviewSettings\]" ~/.config/kdeglobals; then echo -e "\n[PreviewSettings]" >> ~/.config/kdeglobals; fi
+    sed -i '/\[PreviewSettings\]/a SkipRemovableDevices=true\nTooltips=false' ~/.config/kdeglobals
+fi
+
+
 #Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
