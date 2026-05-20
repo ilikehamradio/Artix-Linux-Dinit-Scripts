@@ -48,6 +48,9 @@ sudo pacman -Sy --needed avahi-dinit nss-mdns
 sudo dinitctl start avahi-daemon
 grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hosts: \1mdns_minimal [NOTFOUND=return] dns/' /etc/nsswitch.conf
 
+#online account integration
+sudo pacman -S kio-gdrive kaccounts-integration kaccounts-providers
+
 #appimagetool - broken dependency fix. Needs zsync2, not zsync
 yay -G appimagetool-bin && cd appimagetool-bin && sed -i 's/zsync/zsync2/g' PKGBUILD && makepkg -si
 
