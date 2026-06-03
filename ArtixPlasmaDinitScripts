@@ -97,3 +97,22 @@ log-type        = buffer
 EOF
 
 dinitctl enable ollama
+
+#Virtualbox
+
+# 1. Sync repositories and install VirtualBox + the correct driver/header stack
+# (Automatically chooses between -arch modules or DKMS based on your kernel)
+sudo pacman -Syu --needed --noconfirm virtualbox $([[ $(uname -r) == *"-arch"* ]] && echo "virtualbox-host-modules-arch" || echo "virtualbox-host-dkms linux-headers")
+
+# 2. Load the kernel modules into the current session immediately
+sudo modprobe vboxdrv vboxnetadp vboxnetflt
+
+# 3. Ensure the modules load automatically on boot (since dinit respects modules-load.d)
+sudo mkdir -p /etc/modules-load.d
+echo -e "vboxdrv\nvboxnetadp\nvboxnetflt" | sudo tee /etc/modules-load.d/virtualbox.conf
+
+# 4. Add your user to the vboxusers group for hardware/network access
+sudo gpasswd -a $USER vboxusers
+
+# 5. Confirmation
+echo -e "\n--- Installation & Configuration Complete ---\nNote: If the kernel was updated during this process, please reboot.\nOtherwise, just log out and back in to refresh your group permissions."
