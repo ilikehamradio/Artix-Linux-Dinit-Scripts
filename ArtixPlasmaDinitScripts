@@ -105,3 +105,11 @@ sudo mkdir -p /etc/modules-load.d
 echo -e "vboxdrv\nvboxnetadp\nvboxnetflt" | sudo tee /etc/modules-load.d/virtualbox.conf
 sudo gpasswd -a $USER vboxusers
 echo -e "\n--- Installation & Configuration Complete ---\nNote: If the kernel was updated during this process, please reboot.\nOtherwise, just log out and back in to refresh your group permissions."
+
+#set default text editor to kate
+# Update the main text file association
+xdg-mime default org.kde.kate.desktop text/plain
+
+# Update other common developer text formats
+xdg-mime default org.kde.kate.desktop application/x-zerosize
+xdg-mime default org.kde.kate.desktop text/markdown
