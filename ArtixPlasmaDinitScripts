@@ -1,63 +1,79 @@
-#reset KDE to stock settings
+#!/usr/bin/env bash
+# Post-install setup — pacman, flatpak, and official upstream installers only. No AUR.
+
+set -euo pipefail
+
+# reset KDE to stock settings
 rm -rf ~/.config/plasma* ~/.config/kde* ~/.local/share/plasma* ~/.cache/plasma
 
-#update system
+# update system
 sudo pacman -Syu
 
-#install yay
-sudo pacman -S --needed --noconfirm git base-devel && git clone https://aur.archlinux.org/yay.git /tmp/yay && cd /tmp/yay && makepkg -si --noconfirm && cd - && rm -rf /tmp/yay
+# flatpak
+sudo pacman -S --needed --noconfirm flatpak
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-#install flatpak
-yay -S flatpak
+# dinit-user-spawn
+sudo pacman -S --needed --noconfirm dinit-user-spawn
 
-#install dinit-user-spawn
-sudo pacman -S dinit-user-spawn
+# power profile daemon
+sudo pacman -Syu --needed --noconfirm tlp power-profiles-daemon powerdevil power-profiles-daemon-dinit
 
-#install power profile daemon
-sudo pacman -Syu tlp power-profiles-daemon powerdevil power-profiles-daemon-dinit
-
-#enable power profile daemon
+# enable power profile daemon
 sudo dinitctl enable power-profiles-daemon
 
-#ufw
-yay -S ufw-dinit ufw
+# ufw
+sudo pacman -S --needed --noconfirm ufw ufw-dinit
 sudo dinitctl enable ufw
 
-#remove wacomtablet
-sudo pacman -R wacomtablet
+# remove wacomtablet
+sudo pacman -R --noconfirm wacomtablet 2>/dev/null || true
 
-#nomachine
-yay -S nomachine
-sed -i 's/^\(Enable hardware accelerated decoding *= *\).*/\1"disabled"/' "$HOME/.nx/config/player.cfg"   
+# nomachine (official tar.gz — not in repos)
+NOMACHINE_TAR="/tmp/nomachine.tar.gz"
+curl -fsSL "https://www.nomachine.com/free/linux/64/tar" -o "$NOMACHINE_TAR"
+tmpdir="$(mktemp -d)"
+tar -xzf "$NOMACHINE_TAR" -C "$tmpdir"
+sudo "$tmpdir"/NoMachine/nxserver --install
+rm -rf "$tmpdir" "$NOMACHINE_TAR"
+mkdir -p "$HOME/.nx/config"
+touch "$HOME/.nx/config/player.cfg"
+sed -i 's/^\(Enable hardware accelerated decoding *= *\).*/\1"disabled"/' "$HOME/.nx/config/player.cfg"
 
-#openvpn support
-sudo pacman -S networkmanager-openvpn
+# openvpn support
+sudo pacman -S --needed --noconfirm networkmanager-openvpn
 
-#install brave
-yay -S brave-bin wget
+# brave (Flathub)
+sudo pacman -S --needed --noconfirm wget
+flatpak install -y flathub com.brave.Browser
 
-#run "Brave Debullshitinator"
-bash <(curl -s https://raw.githubusercontent.com/MulesGaming/brave-debloatinator/main/brave-bullshitinator-linux-install.sh)
+# run "Brave Debullshitinator" (targets native Brave; skip if you only use Flatpak)
+# bash <(curl -s https://raw.githubusercontent.com/MulesGaming/brave-debloatinator/main/brave-bullshitinator-linux-install.sh)
 
-#shit for virtualization
-sudo usermod -aG kvm,libvirt,wheel,storage $USER
-sudo pacman -S spice-gtk spice-vdagent virt-manager
+# shit for virtualization
+sudo usermod -aG kvm,libvirt,wheel,storage "$USER"
+sudo pacman -S --needed --noconfirm spice-gtk spice-vdagent virt-manager
 
-#printer network address resolution
-sudo pacman -Sy --needed avahi-dinit nss-mdns
+# printer network address resolution
+sudo pacman -Sy --needed --noconfirm avahi-dinit nss-mdns
 sudo dinitctl start avahi-daemon
 grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hosts: \1mdns_minimal [NOTFOUND=return] dns/' /etc/nsswitch.conf
 
-#online account integration
-sudo pacman -S kio-gdrive kaccounts-integration kaccounts-providers
+# online account integration
+sudo pacman -S --needed --noconfirm kio-gdrive kaccounts-integration kaccounts-providers
 
-#appimagetool - broken dependency fix. Needs zsync2, not zsync
-yay -G appimagetool-bin && cd appimagetool-bin && sed -i 's/zsync/zsync2/g' PKGBUILD && makepkg -si
+# appimagetool (official AppImage — self-contained, no AUR build)
+mkdir -p "$HOME/.local/bin"
+curl -fsSL "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" \
+  -o "$HOME/.local/bin/appimagetool"
+chmod +x "$HOME/.local/bin/appimagetool"
 
-#protondrive support
-sudo pacman -S rclone && mkdir ~/ProtonDrive && rclone config
+# protondrive support
+sudo pacman -S --needed --noconfirm rclone
+mkdir -p ~/ProtonDrive
+rclone config
 
-sudo bash -c "cat > /etc/dinit.d/user/protondrive <<EOF
+sudo tee /etc/dinit.d/user/protondrive > /dev/null <<EOF
 # Service type for background process
 type: process
 
@@ -69,26 +85,26 @@ pid-file: /run/dinit/protondrive.pid
 
 # Restart policy
 restart: true
-EOF"
+EOF
 
 dinitctl enable protondrive
 
-#stupid kioworker bug workaround
-if command -v kwriteconfig6 &> /dev/null; then
-    kwriteconfig6 --file kdeglobals --group PreviewSettings --key SkipRemovableDevices true
-    kwriteconfig6 --file kdeglobals --group PreviewSettings --key Tooltips false
+# stupid kioworker bug workaround
+if command -v kwriteconfig6 &>/dev/null; then
+  kwriteconfig6 --file kdeglobals --group PreviewSettings --key SkipRemovableDevices true
+  kwriteconfig6 --file kdeglobals --group PreviewSettings --key Tooltips false
 else
-    # Fallback to sed if the KDE tool isn't in your path
-    sed -i '/\[PreviewSettings\]/,/^\[/ { /SkipRemovableDevices=/d; /Tooltips=/d; }' ~/.config/kdeglobals
-    if ! grep -q "\[PreviewSettings\]" ~/.config/kdeglobals; then echo -e "\n[PreviewSettings]" >> ~/.config/kdeglobals; fi
-    sed -i '/\[PreviewSettings\]/a SkipRemovableDevices=true\nTooltips=false' ~/.config/kdeglobals
+  sed -i '/\[PreviewSettings\]/,/^\[/ { /SkipRemovableDevices=/d; /Tooltips=/d; }' ~/.config/kdeglobals
+  if ! grep -q "\[PreviewSettings\]" ~/.config/kdeglobals; then
+    echo -e "\n[PreviewSettings]" >> ~/.config/kdeglobals
+  fi
+  sed -i '/\[PreviewSettings\]/a SkipRemovableDevices=true\nTooltips=false' ~/.config/kdeglobals
 fi
 
-
-#Ollama
+# Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
-sudo cat <<EOF | sudo tee /etc/dinit.d/user/ollama > /dev/null
+sudo tee /etc/dinit.d/user/ollama > /dev/null <<EOF
 type            = process
 command         = /usr/local/bin/ollama serve
 restart         = false
@@ -98,18 +114,17 @@ EOF
 
 dinitctl enable ollama
 
-#Virtualbox
-sudo pacman -Syu --needed --noconfirm virtualbox $([[ $(uname -r) == *"-arch"* ]] && echo "virtualbox-host-modules-arch" || echo "virtualbox-host-dkms linux-headers")
+# Virtualbox
+sudo pacman -Syu --needed --noconfirm virtualbox \
+  $([[ $(uname -r) == *"-arch"* ]] && echo "virtualbox-host-modules-arch" || echo "virtualbox-host-dkms linux-headers")
 sudo modprobe vboxdrv vboxnetadp vboxnetflt
 sudo mkdir -p /etc/modules-load.d
 echo -e "vboxdrv\nvboxnetadp\nvboxnetflt" | sudo tee /etc/modules-load.d/virtualbox.conf
-sudo gpasswd -a $USER vboxusers
+sudo gpasswd -a "$USER" vboxusers
+
 echo -e "\n--- Installation & Configuration Complete ---\nNote: If the kernel was updated during this process, please reboot.\nOtherwise, just log out and back in to refresh your group permissions."
 
-#set default text editor to kate
-# Update the main text file association
+# set default text editor to kate
 xdg-mime default org.kde.kate.desktop text/plain
-
-# Update other common developer text formats
 xdg-mime default org.kde.kate.desktop application/x-zerosize
 xdg-mime default org.kde.kate.desktop text/markdown
