@@ -135,3 +135,56 @@ git clone https://aur.archlinux.org/paru.git /tmp/paru && \
 cd /tmp/paru && \
 makepkg -si && \
 cd ~ && rm -rf /tmp/paru
+
+# paru — chroot build support via artools shims
+sudo pacman -S --needed --noconfirm artools-pkg
+sudo ln -sf /usr/bin/mkchrootpkg  /usr/local/bin/makechrootpkg
+sudo ln -sf /usr/bin/mkchroot     /usr/local/bin/mkarchroot
+sudo ln -sf /usr/bin/chroot-run   /usr/local/bin/arch-nspawn
+
+sudo tee /etc/paru.conf > /dev/null << 'EOF'
+#
+# $PARU_CONF
+# /etc/paru.conf
+# ~/.config/paru/paru.conf
+#
+# See the paru.conf(5) manpage for options
+
+#
+# GENERAL OPTIONS
+#
+[options]
+PgpFetch
+Devel
+Provides
+DevelSuffixes = -git -cvs -svn -bzr -darcs -always -hg -fossil
+#AurOnly
+#BottomUp
+#RemoveMake
+#SudoLoop
+UseAsk
+SaveChanges
+#CombinedUpgrade
+CleanAfter
+UpgradeMenu
+#NewsOnUpgrade
+
+#LocalRepo
+Chroot
+#Sign
+#SignDb
+#KeepRepoCache
+
+#
+# Binary OPTIONS
+#
+#[bin]
+#FileManager = vifm
+#MFlags = --skippgpcheck
+#Sudo = doas
+EOF
+
+
+
+
+#more tweaks below here
