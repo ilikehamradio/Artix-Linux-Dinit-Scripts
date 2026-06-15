@@ -128,3 +128,10 @@ echo -e "\n--- Installation & Configuration Complete ---\nNote: If the kernel wa
 xdg-mime default org.kde.kate.desktop text/plain
 xdg-mime default org.kde.kate.desktop application/x-zerosize
 xdg-mime default org.kde.kate.desktop text/markdown
+
+#paru
+sudo pacman -S --needed base-devel git && \
+git clone https://aur.archlinux.org/paru.git /tmp/paru && \
+cd /tmp/paru && \
+makepkg -si && \
+cd ~ && rm -rf /tmp/paru
