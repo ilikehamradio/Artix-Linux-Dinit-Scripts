@@ -13,8 +13,9 @@ sudo pacman -Syu
 sudo pacman -S --needed --noconfirm flatpak
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-# dinit-user-spawn
-sudo pacman -S --needed --noconfirm dinit-user-spawn
+flatpak install -y com.protonvpn.www.Locale io.github.seadve.Kooha com.etlegacy.ETLegacy com.brave.Browser com.audacityteam.Audacity com.github.unrud.VideoDownloader it.mijorus.gearlever com.github.tchx84.Flatseal io.dbeaver.DBeaverCommunity com.spotify.Client com.slack.Slack
+
+sudo pacman -S rustup dotnet-sdk-8.0 nodejs npm dotnet-sdk-9.0 dotnet-sdk-10.0 aspnet-targeting-pack jdk-openjdk spectacle
 
 # power profile daemon
 sudo pacman -Syu --needed --noconfirm tlp power-profiles-daemon powerdevil power-profiles-daemon-dinit
@@ -29,17 +30,6 @@ sudo dinitctl enable ufw
 # remove wacomtablet
 sudo pacman -R --noconfirm wacomtablet 2>/dev/null || true
 
-# nomachine (official tar.gz — not in repos)
-NOMACHINE_TAR="/tmp/nomachine.tar.gz"
-curl -fsSL "https://www.nomachine.com/free/linux/64/tar" -o "$NOMACHINE_TAR"
-tmpdir="$(mktemp -d)"
-tar -xzf "$NOMACHINE_TAR" -C "$tmpdir"
-sudo "$tmpdir"/NoMachine/nxserver --install
-rm -rf "$tmpdir" "$NOMACHINE_TAR"
-mkdir -p "$HOME/.nx/config"
-touch "$HOME/.nx/config/player.cfg"
-sed -i 's/^\(Enable hardware accelerated decoding *= *\).*/\1"disabled"/' "$HOME/.nx/config/player.cfg"
-
 # openvpn support
 sudo pacman -S --needed --noconfirm networkmanager-openvpn
 
@@ -52,7 +42,7 @@ flatpak install -y flathub com.brave.Browser
 
 # shit for virtualization
 sudo usermod -aG kvm,libvirt,wheel,storage "$USER"
-sudo pacman -S --needed --noconfirm spice-gtk spice-vdagent virt-manager
+sudo pacman -S --needed --noconfirm spice-gtk spice-vdagent virt-manager gnome-boxes
 
 # printer network address resolution
 sudo pacman -Sy --needed --noconfirm avahi-dinit nss-mdns
@@ -70,24 +60,7 @@ chmod +x "$HOME/.local/bin/appimagetool"
 
 # protondrive support
 sudo pacman -S --needed --noconfirm rclone
-mkdir -p ~/ProtonDrive
-rclone config
 
-sudo tee /etc/dinit.d/user/protondrive > /dev/null <<EOF
-# Service type for background process
-type: process
-
-# The command to run (use absolute path!)
-command: /usr/bin/rclone mount ProtonDrive: /home/$(id -un)/ProtonDrive --vfs-cache-mode full
-
-# PID file location (required for bgprocess)
-pid-file: /run/dinit/protondrive.pid
-
-# Restart policy
-restart: true
-EOF
-
-dinitctl enable protondrive
 
 # stupid kioworker bug workaround
 if command -v kwriteconfig6 &>/dev/null; then
@@ -277,3 +250,4 @@ echo 'export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$UID/bus' >> ~/.xprofi
 
 # Fix Wayland session failing due to leftover NoMachine install
 sudo sed -i 's|exec /tmp/nx-install/NX/scripts/env/nxpreload.sh.*|exec ${drs} "$@"|' /usr/lib/plasma-dbus-run-session-if-needed
+
