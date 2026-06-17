@@ -9,6 +9,12 @@ rm -rf ~/.config/plasma* ~/.config/kde* ~/.local/share/plasma* ~/.cache/plasma
 # update system
 sudo pacman -Syu
 
+
+#Xlibre fucked up several systems with last update - force classic X11 for now.
+sudo pacman -Sdd xorg-server xorg-xinit xf86-input-libinput xf86-video-amdgpu xf86-video-intel xf86-video-fbdev xf86-video-vesa
+sudo pacman -R xlibre-input-vmmouse xlibre-video-ati xlibre-video-dummy xlibre-video-nouveau xlibre-video-qxl xlibre-video-sisusb xlibre-video-voodoo
+sudo pacman -R xlibre-xserver-common xlibre-video-fbdev xlibre-video-vesa 2>/dev/null || true
+
 # flatpak
 sudo pacman -S --needed --noconfirm flatpak
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
