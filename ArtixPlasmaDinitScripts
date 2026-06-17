@@ -267,3 +267,13 @@ style = "bold blue"
 [line_break]
 disabled = true
 EOF
+
+#more fixes
+# Fix flatpak apps complaining about canberra-gtk-module
+flatpak override --user --unset-env=GTK_MODULES
+
+# Fix DBUS_SESSION_BUS_ADDRESS being set to "disabled:" on X11
+echo 'export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$UID/bus' >> ~/.xprofile
+
+# Fix Wayland session failing due to leftover NoMachine install
+sudo sed -i 's|exec /tmp/nx-install/NX/scripts/env/nxpreload.sh.*|exec ${drs} "$@"|' /usr/lib/plasma-dbus-run-session-if-needed
