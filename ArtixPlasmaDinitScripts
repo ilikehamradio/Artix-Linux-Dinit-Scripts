@@ -19,7 +19,7 @@ sudo pacman -R xlibre-xserver-common xlibre-video-fbdev xlibre-video-vesa 2>/dev
 sudo pacman -S --needed --noconfirm flatpak
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-flatpak install -y com.protonvpn.www.Locale com.vscodium.codium io.github.seadve.Kooha com.etlegacy.ETLegacy com.brave.Browser com.audacityteam.Audacity com.github.unrud.VideoDownloader it.mijorus.gearlever com.github.tchx84.Flatseal io.dbeaver.DBeaverCommunity com.spotify.Client com.slack.Slack
+flatpak install -y com.nomachine.nxplayer com.protonvpn.www.Locale com.vscodium.codium io.github.seadve.Kooha com.etlegacy.ETLegacy com.brave.Browser com.audacityteam.Audacity com.github.unrud.VideoDownloader it.mijorus.gearlever com.github.tchx84.Flatseal io.dbeaver.DBeaverCommunity com.spotify.Client com.slack.Slack
 
 sudo pacman -S rustup dotnet-sdk-8.0 nodejs npm dotnet-sdk-9.0 dotnet-sdk-10.0 aspnet-targeting-pack jdk-openjdk spectacle
 
