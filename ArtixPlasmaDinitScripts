@@ -52,6 +52,7 @@ sudo pacman -S --needed --noconfirm spice-gtk spice-vdagent virt-manager gnome-b
 
 # printer network address resolution
 sudo pacman -Sy --needed --noconfirm avahi-dinit nss-mdns
+sudo dinitctl enable avahi-daemon
 sudo dinitctl start avahi-daemon
 grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hosts: \1mdns_minimal [NOTFOUND=return] dns/' /etc/nsswitch.conf
 
