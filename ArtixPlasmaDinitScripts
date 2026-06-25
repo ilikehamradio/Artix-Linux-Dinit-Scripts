@@ -9,13 +9,12 @@ rm -rf ~/.config/plasma* ~/.config/kde* ~/.local/share/plasma* ~/.cache/plasma
 # Update system smoothly
 sudo pacman -Syu --noconfirm
 
-# OpenNTPD Setup (No hanging blocks)
+# OpenNTPD Setup
 sudo pacman -S --needed --noconfirm openntpd openntpd-dinit
-echo "Syncing system time... Please wait a brief moment."
-sudo ntpd -s
+sudo date -s "$(curl -sI https://google.com | grep -i '^date:' | cut -d' ' -f3-7)"
 sudo hwclock --systohc
-sudo dinitctl enable openntpd
-sudo dinitctl start openntpd
+sudo dinitctl enable ntpd
+sudo dinitctl restart ntpd
 
 # Flatpak Framework
 sudo pacman -S --needed --noconfirm flatpak
