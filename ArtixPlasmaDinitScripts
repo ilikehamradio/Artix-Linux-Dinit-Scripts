@@ -23,6 +23,9 @@ flatpak install -y com.nomachine.nxplayer com.protonvpn.www.Locale com.vscodium.
 
 sudo pacman -S rustup dotnet-sdk-8.0 nodejs npm dotnet-sdk-9.0 dotnet-sdk-10.0 aspnet-targeting-pack jdk-openjdk spectacle libreoffice-fresh system-config-printer traceroute partitionmanager ntfs-3g
 
+#set default Rust / Cargo
+rustup default stable
+
 # power profile daemon
 sudo pacman -Syu --needed --noconfirm tlp power-profiles-daemon powerdevil power-profiles-daemon-dinit
 
