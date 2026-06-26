@@ -8,7 +8,7 @@ flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flat
 flatpak install -y com.nomachine.nxplayer com.protonvpn.www.Locale com.vscodium.codium io.github.seadve.Kooha com.etlegacy.ETLegacy com.brave.Browser com.github.unrud.VideoDownloader it.mijorus.gearlever com.github.tchx84.Flatseal io.dbeaver.DBeaverCommunity com.spotify.Client com.slack.Slack com.nextcloud.desktopclient.nextcloud com.valvesoftware.Steam net.lutris.Lutris org.signal.Signal
 
 # Development SDKs and Native Tools
-sudo pacman -S --needed --noconfirm rustup dotnet-sdk-8.0 nodejs npm dotnet-sdk-9.0 dotnet-sdk-10.0 aspnet-targeting-pack jdk-openjdk spectacle libreoffice-fresh system-config-printer traceroute partitionmanager ntfs-3g unzip
+sudo pacman -S --needed --noconfirm rustup dotnet-sdk-8.0 nodejs npm dotnet-sdk-9.0 dotnet-sdk-10.0 aspnet-targeting-pack jdk-openjdk spectacle libreoffice-fresh system-config-printer traceroute partitionmanager ntfs-3g unzip sshpass
 
 # Set default Rust / Cargo
 rustup default stable
