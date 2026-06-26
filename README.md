@@ -1,7 +1,7 @@
-I opted to use xlibre for 2 reasons:
-1.) Plasma on Wayland is broke at the time of writing this
-2.) If I have to use X, I'd rather use a fork that is being actively maintained instead of the version that the zealots are hellbent on killing.
+Figured I'd best update this since I've been modifying it just about every week.
 
-I opted for pipewire and wireplumber because it seems to remember my volume level between reboots. Probably not a great reason, but whatever. It's my compilation of commands.
+This is just master script I run with each fresh Artix/dinit install to get shit setup how I like it and also to install my favorite applications. As indicated prior, I am constantly improving the script for one reason or another. For example, the latest Artix Plasma Dinit ISO apparently didn't come with any sort of NTP and as a result, the captchas wouldn't work nor would the MFA via Bitwarden. Minor annoyance, but easily fixed. Also, recently Artix shifted to xlibre as default over xorg. There for a week or so, xlibre was broken and compeltely fucked SDDM so I added code to replace xlibre with xorg as a work around. And then a week later on a fresh ISO, it was fixed. This is how it goes and best I can do is react when I see something.
 
-I opted for Brave because I HATE what Mozilla has become and trust that organization about as much as gas station sushi.
+Anyway, use at your own risk. I'm just doing this mostly out of self interest but also I like to kinda pay it forward and help out others as I can. With the world we live in under the survalience state and distros bending the knee to politicans who are too retarded to tell their ass from a hole in the ground at best or bought & paid for at worst, I very much expect more interest into the software that fights against this. For example, systemd was shit from the start but when some moron added in the entry for age attestation and the morons that head systemd refused the pull requests to strip that fuckery out, that was it for me and I jumped on the anti-systemd train. As such, my distro choices became limited. Artix with dinit was a Godsend. Anyway, I made / update this script so people have some easy-ish means of tweaking their Artix / dinit systems to be as smooth out the gate as EndeavourOS is.
+
+Again, use at your own risk. To that end, you may want to run the commands one at a time for safe measure.
