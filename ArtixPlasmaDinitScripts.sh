@@ -207,8 +207,8 @@ grep -q "DBUS_SESSION_BUS_ADDRESS" ~/.xprofile 2>/dev/null || echo 'export DBUS_
 #brave origin
 paru -S brave-origin-bin
 
-#hard limits
-grep -q "^${SUDO_USER:-$(whoami)}[[:space:]]\+hard[[:space:]]\+nofile[[:space:]]\+524288$" /etc/security/limits.conf || echo "${SUDO_USER:-$(whoami)} hard nofile 524288" >> /etc/security/limits.conf
+#hard limits for gaming
+sudo grep -q "^$USER[[:space:]]\+hard[[:space:]]\+nofile[[:space:]]\+524288$" /etc/security/limits.conf || echo "$USER hard nofile 524288" | sudo tee -a /etc/security/limits.conf >/dev/null
 
 
 echo -e "\n--- Installation & Configuration Complete ---\nNote: If the kernel was updated during this process, please reboot.\nOtherwise, just log out and back in to refresh your group permissions."
