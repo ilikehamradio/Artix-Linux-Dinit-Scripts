@@ -210,5 +210,10 @@ paru -S brave-origin-bin
 #hard limits for gaming
 sudo grep -q "^$USER[[:space:]]\+hard[[:space:]]\+nofile[[:space:]]\+524288$" /etc/security/limits.conf || echo "$USER hard nofile 524288" | sudo tee -a /etc/security/limits.conf >/dev/null
 
+#flatpak steam symlink
+mkdir -p ~/Games/Steam
+ln -s ~/.var/app/com.valvesoftware.Steam/.steam/steam/steamapps/common ~/Games/Steam
+
+
 
 echo -e "\n--- Installation & Configuration Complete ---\nNote: If the kernel was updated during this process, please reboot.\nOtherwise, just log out and back in to refresh your group permissions."
