@@ -214,6 +214,11 @@ sudo grep -q "^$USER[[:space:]]\+hard[[:space:]]\+nofile[[:space:]]\+524288$" /e
 mkdir -p ~/Games/Steam
 ln -s ~/.var/app/com.valvesoftware.Steam/.steam/steam/steamapps/common ~/Games/Steam
 
+sudo groupadd dialout
+sudo groupadd uucp
+sudo usermod -aG dialout $USER
+sudo usermod -aG uucp $USER
+
 
 
 echo -e "\n--- Installation & Configuration Complete ---\nNote: If the kernel was updated during this process, please reboot.\nOtherwise, just log out and back in to refresh your group permissions."
