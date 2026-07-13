@@ -219,6 +219,22 @@ sudo groupadd uucp
 sudo usermod -aG dialout $USER
 sudo usermod -aG uucp $USER
 
+#PAM fix
+# KDE lock screen: kscreenlocker cancels PAM on suspend/resume and pam_faillock
+# treats that as real failed logins (instant "Failed login", multi-minute lockouts).
+# Override only the lock-screen stack; SDDM/console/sudo keep system-auth faillock.
+sudo tee /etc/pam.d/kde > /dev/null << 'EOF'
+#%PAM-1.0
+auth       required   pam_shells.so
+auth       requisite  pam_nologin.so
+auth       required   pam_unix.so          try_first_pass nullok
+auth       optional   pam_permit.so
+auth       required   pam_env.so
+account    include    system-local-login
+password   include    system-local-login
+session    include    system-local-login
+EOF
+
 
 
 echo -e "\n--- Installation & Configuration Complete ---\nNote: If the kernel was updated during this process, please reboot.\nOtherwise, just log out and back in to refresh your group permissions."
