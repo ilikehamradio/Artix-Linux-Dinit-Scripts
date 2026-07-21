@@ -51,6 +51,15 @@ mkdir -p "$HOME/.local/bin"
 curl -fsSL "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -o "$HOME/.local/bin/appimagetool"
 chmod +x "$HOME/.local/bin/appimagetool"
 
+#chronyd for system clock
+sudo pacman -S --needed chrony chrony-dinit \
+  && sudo dinitctl enable chronyd \
+  && sudo dinitctl start chronyd \
+  && sleep 2 \
+  && sudo chronyc burst 4/4 \
+  && sudo chronyc makestep \
+  && chronyc tracking
+
 # ProtonDrive rclone engine support
 sudo pacman -S --needed --noconfirm rclone
 
