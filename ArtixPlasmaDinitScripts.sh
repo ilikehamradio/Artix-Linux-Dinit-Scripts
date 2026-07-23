@@ -46,10 +46,67 @@ grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hos
 # Online account integration
 sudo pacman -S --needed --noconfirm kio-gdrive kaccounts-integration kaccounts-providers
 
-# appimagetool upstream integration
-mkdir -p "$HOME/.local/bin"
-curl -fsSL "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -o "$HOME/.local/bin/appimagetool"
-chmod +x "$HOME/.local/bin/appimagetool"
+# appimagetool support
+# Continues on individual failures; does not abort the parent script.
+(
+  _ok=0
+  _fail() { echo "warning: $*" >&2; _ok=1; }
+
+  sudo pacman -S --needed --noconfirm squashfs-tools fuse2 fuse3 curl \
+    || _fail "pacman could not install squashfs-tools/fuse2/fuse3/curl"
+
+  echo fuse | sudo tee /etc/modules-load.d/fuse.conf >/dev/null \
+    || _fail "could not write /etc/modules-load.d/fuse.conf"
+  sudo modprobe fuse \
+    || _fail "modprobe fuse failed (continuing; wrapper uses APPIMAGE_EXTRACT_AND_RUN)"
+
+  sudo mkdir -p /usr/local/lib/appimagetool /usr/local/bin \
+    || _fail "could not create /usr/local/{lib/appimagetool,bin}"
+
+  if curl -fsSL \
+    "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" \
+    -o /tmp/appimagetool-x86_64.AppImage
+  then
+    sudo install -m 755 /tmp/appimagetool-x86_64.AppImage \
+      /usr/local/lib/appimagetool/appimagetool.AppImage \
+      || _fail "could not install appimagetool.AppImage into /usr/local/lib"
+  else
+    _fail "download of appimagetool continuous AppImage failed"
+  fi
+  rm -f /tmp/appimagetool-x86_64.AppImage
+
+  if sudo tee /usr/local/bin/appimagetool >/dev/null <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+export APPIMAGE_EXTRACT_AND_RUN="${APPIMAGE_EXTRACT_AND_RUN:-1}"
+exec /usr/local/lib/appimagetool/appimagetool.AppImage "$@"
+EOF
+  then
+    sudo chmod 755 /usr/local/bin/appimagetool \
+      || _fail "could not chmod /usr/local/bin/appimagetool"
+  else
+    _fail "could not write /usr/local/bin/appimagetool wrapper"
+  fi
+
+  rm -f "${HOME}/.local/bin/appimagetool"
+
+  command -v appimagetool >/dev/null 2>&1 \
+    || _fail "appimagetool not on PATH after install"
+  command -v mksquashfs >/dev/null 2>&1 \
+    || _fail "mksquashfs not on PATH after install"
+  appimagetool --version >/dev/null 2>&1 \
+    || _fail "appimagetool --version failed"
+  [[ -e /dev/fuse ]] \
+    || _fail "/dev/fuse missing (packaging can still work via extract-and-run)"
+
+  if [[ "${_ok}" -eq 0 ]]; then
+    echo "appimagetool: OK ($(command -v appimagetool))"
+  else
+    echo "appimagetool: completed with warnings" >&2
+  fi
+  exit 0
+)
+
 
 #chronyd for system clock
 sudo pacman -S --needed chrony chrony-dinit \
