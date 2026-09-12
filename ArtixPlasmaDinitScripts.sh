@@ -1,4 +1,4 @@
-
+sudo pacman -Syyu
 
 # Flatpak Framework
 sudo pacman -S --needed --noconfirm flatpak
@@ -42,6 +42,9 @@ sudo pacman -Sy --needed --noconfirm avahi-dinit nss-mdns
 sudo dinitctl enable avahi-daemon
 sudo dinitctl start avahi-daemon
 grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hosts: \1mdns_minimal [NOTFOUND=return] dns/' /etc/nsswitch.conf
+
+#Syncthing & Syncthingy
+sudo pacman -S syncthing-dinit syncthing && flatpak install syncthingy -y
 
 # Online account integration
 sudo pacman -S --needed --noconfirm kio-gdrive kaccounts-integration kaccounts-providers
