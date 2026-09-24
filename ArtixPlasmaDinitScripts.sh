@@ -1,11 +1,11 @@
-sudo pacman -Syyu
+sudo pacman -Syyu --noconfirm
 
 # Flatpak Framework
 sudo pacman -S --needed --noconfirm flatpak
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
 # Install Flatpaks
-flatpak install -y com.nomachine.nxplayer com.protonvpn.www.Locale com.vscodium.codium io.github.seadve.Kooha com.etlegacy.ETLegacy com.brave.Browser com.github.unrud.VideoDownloader it.mijorus.gearlever com.github.tchx84.Flatseal io.dbeaver.DBeaverCommunity com.spotify.Client com.slack.Slack com.nextcloud.desktopclient.nextcloud com.valvesoftware.Steam net.lutris.Lutris org.signal.Signal
+sudo flatpak install -y com.nomachine.nxplayer com.protonvpn.www.Locale com.vscodium.codium io.github.seadve.Kooha com.etlegacy.ETLegacy com.brave.Browser com.github.unrud.VideoDownloader it.mijorus.gearlever com.github.tchx84.Flatseal io.dbeaver.DBeaverCommunity com.spotify.Client com.slack.Slack com.nextcloud.desktopclient.nextcloud com.valvesoftware.Steam net.lutris.Lutris org.signal.Signal
 
 # Development SDKs and Native Tools
 sudo pacman -S --needed --noconfirm rustup dotnet-sdk-8.0 nodejs npm dotnet-sdk-9.0 dotnet-sdk-10.0 aspnet-targeting-pack jdk-openjdk spectacle libreoffice-fresh system-config-printer traceroute partitionmanager ntfs-3g unzip sshpass vlc vlc-plugins-extra
@@ -31,11 +31,13 @@ sudo pacman -S --needed --noconfirm networkmanager-openvpn
 
 # Brave (Flathub explicit sync verification)
 sudo pacman -S --needed --noconfirm wget
-flatpak install -y flathub com.brave.Browser
+sudo flatpak install -y flathub com.brave.Browser
 
 # KVM/QEMU Virtualization Permissions and Tools
-sudo usermod -aG kvm,libvirt,wheel,storage "$USER"
-sudo pacman -S --needed --noconfirm spice-gtk spice-vdagent virt-manager gnome-boxes
+sudo pacman -S --needed --noconfirm spice-gtk spice-vdagent virt-manager gnome-boxes libvirt
+for grp in kvm libvirt wheel storage; do
+  getent group "$grp" >/dev/null && sudo usermod -aG "$grp" "$USER"
+done
 
 # Printer network address resolution (mDNS)
 sudo pacman -Sy --needed --noconfirm avahi-dinit nss-mdns
@@ -44,7 +46,7 @@ sudo dinitctl start avahi-daemon
 grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hosts: \1mdns_minimal [NOTFOUND=return] dns/' /etc/nsswitch.conf
 
 #Syncthing & Syncthingy
-sudo pacman -S syncthing-dinit syncthing && flatpak install syncthingy -y
+sudo pacman -S --needed --noconfirm syncthing-dinit syncthing && sudo flatpak install -y syncthingy
 
 # Online account integration
 sudo pacman -S --needed --noconfirm kio-gdrive kaccounts-integration kaccounts-providers
@@ -110,7 +112,6 @@ EOF
   exit 0
 )
 
-
 #chronyd for system clock
 sudo pacman -S --needed chrony chrony-dinit \
   && sudo dinitctl enable chronyd \
@@ -128,6 +129,8 @@ if command -v kwriteconfig6 &>/dev/null; then
   kwriteconfig6 --file kdeglobals --group PreviewSettings --key SkipRemovableDevices true
   kwriteconfig6 --file kdeglobals --group PreviewSettings --key Tooltips false
 else
+  mkdir -p ~/.config
+  touch ~/.config/kdeglobals
   sed -i '/\[PreviewSettings\]/,/^\[/ { /SkipRemovableDevices=/d; /Tooltips=/d; }' ~/.config/kdeglobals
   if ! grep -q "\[PreviewSettings\]" ~/.config/kdeglobals; then
     echo -e "\n[PreviewSettings]" >> ~/.config/kdeglobals
@@ -136,29 +139,19 @@ else
 fi
 
 # Ollama local AI deployment
+# Vulkan plus the iGPU flag. Ollama finds the 780M and skips it unless both are set.
+# User dinit reads ~/.config/dinit.d before /etc/dinit.d/user, so both copies are installed.
 curl -fsSL https://ollama.com/install.sh | sh
-
-sudo tee /etc/dinit.d/user/ollama > /dev/null <<EOF
-type            = process
-command         = /usr/local/bin/ollama serve
-restart         = false
-smooth-recovery = true
-log-type        = buffer
-EOF
-
-# Ensure user-level directory path context safely exists for dinitctl user supervision
-mkdir -p ~/.config/dinit.d
-dinitctl enable ollama
 
 cfg="${XDG_CONFIG_HOME:-$HOME/.config}/dinit.d"
 mkdir -p "$cfg/boot.d"
 
-cat > "$cfg/ollama.env" <<'EOF'
+sudo mkdir -p /etc/dinit.d/user
+sudo tee /etc/dinit.d/user/ollama.env >/dev/null <<'EOF'
 OLLAMA_VULKAN=1
 OLLAMA_IGPU_ENABLE=1
 EOF
-
-cat > "$cfg/ollama" <<'EOF'
+sudo tee /etc/dinit.d/user/ollama >/dev/null <<'EOF'
 type            = process
 command         = /usr/bin/env OLLAMA_VULKAN=1 OLLAMA_IGPU_ENABLE=1 /usr/local/bin/ollama serve
 env-file        = ollama.env
@@ -167,6 +160,18 @@ smooth-recovery = true
 log-type        = buffer
 EOF
 
+cat > "$cfg/ollama.env" <<'EOF'
+OLLAMA_VULKAN=1
+OLLAMA_IGPU_ENABLE=1
+EOF
+cat > "$cfg/ollama" <<'EOF'
+type            = process
+command         = /usr/bin/env OLLAMA_VULKAN=1 OLLAMA_IGPU_ENABLE=1 /usr/local/bin/ollama serve
+env-file        = ollama.env
+restart         = false
+smooth-recovery = true
+log-type        = buffer
+EOF
 ln -sfn ../ollama "$cfg/boot.d/ollama"
 
 if dinitctl status ollama >/dev/null 2>&1; then
@@ -177,7 +182,7 @@ if dinitctl status ollama >/dev/null 2>&1; then
   dinitctl add-dep waits-for boot ollama 2>/dev/null || true
 fi
 
-# Virtualbox deployment 
+# Virtualbox deployment
 sudo pacman -Syu --needed --noconfirm virtualbox \
   $([[ $(uname -r) == *"-arch"* ]] && echo "virtualbox-host-modules-arch" || echo "virtualbox-host-dkms linux-headers")
 sudo modprobe vboxdrv vboxnetadp vboxnetflt || true
@@ -200,9 +205,9 @@ cd ~ && rm -rf /tmp/paru
 
 # Paru optimization — native chroot build support via artools isolation shims
 sudo pacman -S --needed --noconfirm artools-pkg
-sudo ln -sf /usr/bin/mkchrootpkg  /usr/local/bin/makechrootpkg
-sudo ln -sf /usr/bin/mkchroot     /usr/local/bin/mkarchroot
-sudo ln -sf /usr/bin/chroot-run   /usr/local/bin/arch-nspawn
+sudo ln -sf /usr/bin/mkchrootpkg /usr/local/bin/makechrootpkg
+sudo ln -sf /usr/bin/mkchroot /usr/local/bin/mkarchroot
+sudo ln -sf /usr/bin/chroot-run /usr/local/bin/arch-nspawn
 
 sudo tee /etc/paru.conf > /dev/null << 'EOF'
 [options]
@@ -301,19 +306,19 @@ flatpak override --user --unset-env=GTK_MODULES
 grep -q "DBUS_SESSION_BUS_ADDRESS" ~/.xprofile 2>/dev/null || echo 'export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$UID/bus' >> ~/.xprofile
 
 #brave origin
-paru -S brave-origin-bin
+paru -S --needed --noconfirm brave-origin-bin
 
 #hard limits for gaming
 sudo grep -q "^$USER[[:space:]]\+hard[[:space:]]\+nofile[[:space:]]\+524288$" /etc/security/limits.conf || echo "$USER hard nofile 524288" | sudo tee -a /etc/security/limits.conf >/dev/null
 
 #flatpak steam symlink
 mkdir -p ~/Games/Steam
-ln -s ~/.var/app/com.valvesoftware.Steam/.steam/steam/steamapps/common ~/Games/Steam
+ln -sfn ~/.var/app/com.valvesoftware.Steam/.steam/steam/steamapps/common ~/Games/Steam
 
-sudo groupadd dialout
-sudo groupadd uucp
-sudo usermod -aG dialout $USER
-sudo usermod -aG uucp $USER
+sudo groupadd dialout || true
+sudo groupadd uucp || true
+sudo usermod -aG dialout "$USER"
+sudo usermod -aG uucp "$USER"
 
 #PAM fix
 # KDE lock screen: kscreenlocker cancels PAM on suspend/resume and pam_faillock
@@ -321,16 +326,14 @@ sudo usermod -aG uucp $USER
 # Override only the lock-screen stack; SDDM/console/sudo keep system-auth faillock.
 sudo tee /etc/pam.d/kde > /dev/null << 'EOF'
 #%PAM-1.0
-auth       required   pam_shells.so
-auth       requisite  pam_nologin.so
-auth       required   pam_unix.so          try_first_pass nullok
-auth       optional   pam_permit.so
-auth       required   pam_env.so
-account    include    system-local-login
-password   include    system-local-login
-session    include    system-local-login
+auth required pam_shells.so
+auth requisite pam_nologin.so
+auth required pam_unix.so try_first_pass nullok
+auth optional pam_permit.so
+auth required pam_env.so
+account include system-local-login
+password include system-local-login
+session include system-local-login
 EOF
-
-
 
 echo -e "\n--- Installation & Configuration Complete ---\nNote: If the kernel was updated during this process, please reboot.\nOtherwise, just log out and back in to refresh your group permissions."
