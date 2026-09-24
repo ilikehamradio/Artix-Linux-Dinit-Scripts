@@ -150,6 +150,33 @@ EOF
 mkdir -p ~/.config/dinit.d
 dinitctl enable ollama
 
+cfg="${XDG_CONFIG_HOME:-$HOME/.config}/dinit.d"
+mkdir -p "$cfg/boot.d"
+
+cat > "$cfg/ollama.env" <<'EOF'
+OLLAMA_VULKAN=1
+OLLAMA_IGPU_ENABLE=1
+EOF
+
+cat > "$cfg/ollama" <<'EOF'
+type            = process
+command         = /usr/bin/env OLLAMA_VULKAN=1 OLLAMA_IGPU_ENABLE=1 /usr/local/bin/ollama serve
+env-file        = ollama.env
+restart         = false
+smooth-recovery = true
+log-type        = buffer
+EOF
+
+ln -sfn ../ollama "$cfg/boot.d/ollama"
+
+if dinitctl status ollama >/dev/null 2>&1; then
+  dinitctl rm-dep waits-for boot ollama 2>/dev/null || true
+  dinitctl stop ollama || true
+  dinitctl unload ollama || true
+  dinitctl start ollama
+  dinitctl add-dep waits-for boot ollama 2>/dev/null || true
+fi
+
 # Virtualbox deployment 
 sudo pacman -Syu --needed --noconfirm virtualbox \
   $([[ $(uname -r) == *"-arch"* ]] && echo "virtualbox-host-modules-arch" || echo "virtualbox-host-dkms linux-headers")
