@@ -10,6 +10,10 @@ sudo flatpak install -y com.nomachine.nxplayer com.protonvpn.www.Locale com.vsco
 # Development SDKs and Native Tools
 sudo pacman -S --needed --noconfirm rustup dotnet-sdk-8.0 nodejs npm dotnet-sdk-9.0 dotnet-sdk-10.0 aspnet-targeting-pack jdk-openjdk spectacle libreoffice-fresh system-config-printer traceroute partitionmanager ntfs-3g unzip sshpass vlc vlc-plugins-extra
 
+#alias for gearlever
+grep -q "alias gearlever=" ~/.bashrc 2>/dev/null || echo "alias gearlever='flatpak run it.mijorus.gearlever'" >> ~/.bashrc
+source ~/.bashrc
+
 # Set default Rust / Cargo
 rustup default stable
 
