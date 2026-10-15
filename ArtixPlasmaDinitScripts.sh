@@ -43,11 +43,21 @@ for grp in kvm libvirt wheel storage; do
   getent group "$grp" >/dev/null && sudo usermod -aG "$grp" "$USER"
 done
 
-# Printer network address resolution (mDNS)
-sudo pacman -Sy --needed --noconfirm avahi-dinit nss-mdns
+# Printing
+# CUPS discovers IPP printers over Avahi. ipp-usb's udev rule starts itself
+# when a USB printer is plugged in. cups-browsed, which creates the permanent
+# queues Mint shows in the printer list, is installed after paru.
+sudo pacman -S --needed --noconfirm \
+  cups cups-dinit cups-filters ghostscript \
+  avahi avahi-dinit nss-mdns \
+  print-manager cups-pk-helper \
+  ipp-usb
 sudo dinitctl enable avahi-daemon
+sudo dinitctl enable cupsd
 sudo dinitctl start avahi-daemon
+sudo dinitctl start cupsd
 grep -q "mdns_minimal" /etc/nsswitch.conf || sudo sed -i 's/hosts: \(.*\)dns/hosts: \1mdns_minimal [NOTFOUND=return] dns/' /etc/nsswitch.conf
+getent group lp >/dev/null && sudo usermod -aG lp "$USER"
 
 #Syncthing & Syncthingy
 sudo pacman -S --needed --noconfirm syncthing-dinit syncthing && sudo flatpak install -y syncthingy
@@ -206,6 +216,26 @@ git clone https://aur.archlinux.org/paru.git /tmp/paru
 cd /tmp/paru
 makepkg -si --noconfirm
 cd ~ && rm -rf /tmp/paru
+
+# Mint-style automatic network printer queues
+paru -S --needed --noconfirm cups-browsed-git
+
+sudo tee /etc/dinit.d/cups-browsed >/dev/null <<'EOF'
+type            = process
+command         = /usr/bin/cups-browsed
+depends-on      = cupsd
+waits-for       = avahi-daemon
+waits-for       = network.target
+smooth-recovery = true
+EOF
+
+sudo tee /etc/cups/cups-browsed.conf >/dev/null <<'EOF'
+BrowseRemoteProtocols dnssd
+CreateIPPPrinterQueues All
+EOF
+
+sudo dinitctl enable cups-browsed
+sudo dinitctl start cups-browsed
 
 # Paru optimization — native chroot build support via artools isolation shims
 sudo pacman -S --needed --noconfirm artools-pkg
