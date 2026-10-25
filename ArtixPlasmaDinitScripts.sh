@@ -43,6 +43,16 @@ for grp in kvm libvirt wheel storage; do
   getent group "$grp" >/dev/null && sudo usermod -aG "$grp" "$USER"
 done
 
+#fix retarded Kwin default window placement rules
+kwriteconfig6 --file kwinrc --group Windows --key Placement Centered && \
+awk '
+  /^\[Tiling/ { skip=1; next }
+  /^\[/ { skip=0 }
+  !skip { print }
+' "$HOME/.config/kwinrc" > "$HOME/.config/kwinrc.tmp" && \
+mv "$HOME/.config/kwinrc.tmp" "$HOME/.config/kwinrc" && \
+qdbus6 org.kde.KWin /KWin reconfigure
+
 # Printing
 # CUPS discovers IPP printers over Avahi. ipp-usb's udev rule starts itself
 # when a USB printer is plugged in. cups-browsed, which creates the permanent
